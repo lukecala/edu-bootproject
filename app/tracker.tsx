@@ -14,6 +14,13 @@ import {
 } from '@/lib/supabase'
 import { updateLeadFirstMessage, updateLeadStatus } from './actions'
 
+const STATUS_LABELS: Record<LeadStatus, string> = {
+  connection_sent: 'richiesta inviata',
+  new: 'nuovo',
+  connected: 'connesso',
+  rejected: 'rifiutato',
+}
+
 const STATUS_CLASS: Record<LeadStatus, string> = {
   new: 'text-foreground',
   connection_sent: 'text-muted',
@@ -21,9 +28,19 @@ const STATUS_CLASS: Record<LeadStatus, string> = {
   rejected: 'text-danger line-through opacity-60',
 }
 
+const FIRST_MSG_LABELS: Record<FirstMessage, string> = {
+  message_sent: 'messaggio inviato',
+  replied: 'ha risposto',
+}
+
 const FIRST_MSG_CLASS: Record<FirstMessage, string> = {
   message_sent: 'text-warning',
   replied: 'text-success',
+}
+
+const SOURCE_LABELS: Record<LeadSource, string> = {
+  origami: 'origami',
+  monitor_manual: 'monitor manuale',
 }
 
 type FilterStatus = 'all' | LeadStatus
@@ -68,20 +85,20 @@ export function Tracker({ initial, icp }: { initial: Lead[]; icp: Icp | null }) 
 
       <div className="flex flex-wrap gap-8 items-baseline pb-5 border-b border-border">
         <Filter
-          label="status"
+          label="stato"
           value={filterStatus}
           options={[
-            ['all', 'all status'],
-            ...LEAD_STATUSES.map((s) => [s, s.replace('_', ' ')] as [string, string]),
+            ['all', 'tutti gli stati'],
+            ...LEAD_STATUSES.map((s) => [s, STATUS_LABELS[s]] as [string, string]),
           ]}
           onChange={(v) => setFilterStatus(v as FilterStatus)}
         />
         <Filter
-          label="source"
+          label="sorgente"
           value={filterSource}
           options={[
-            ['all', 'all sources'],
-            ...LEAD_SOURCES.map((s) => [s, s.replace('_', ' ')] as [string, string]),
+            ['all', 'tutte le sorgenti'],
+            ...LEAD_SOURCES.map((s) => [s, SOURCE_LABELS[s]] as [string, string]),
           ]}
           onChange={(v) => setFilterSource(v as FilterSource)}
         />
@@ -94,7 +111,7 @@ export function Tracker({ initial, icp }: { initial: Lead[]; icp: Icp | null }) 
         <table className="w-full">
           <thead>
             <tr className="border-b border-border">
-              {['profile url', 'source', 'status', '1st message', 'last activity'].map((h) => (
+              {['url profilo', 'sorgente', 'stato', '1° messaggio', 'ultima attività'].map((h) => (
                 <th
                   key={h}
                   className="text-left py-3 font-mono text-[10px] uppercase tracking-[0.25em] text-muted font-normal"
@@ -114,7 +131,7 @@ export function Tracker({ initial, icp }: { initial: Lead[]; icp: Icp | null }) 
                   colSpan={5}
                   className="py-16 text-center font-serif italic text-muted text-lg"
                 >
-                  no leads in this slice yet.
+                  nessun lead in questa selezione.
                 </td>
               </tr>
             )}
@@ -168,7 +185,7 @@ function Row({ lead }: { lead: Lead }) {
         </a>
       </td>
       <td className="py-4 pr-4 font-mono text-xs uppercase tracking-[0.2em] text-muted">
-        {lead.source.replace('_', ' ')}
+        {SOURCE_LABELS[lead.source]}
       </td>
       <td className={`py-4 pr-4 font-mono text-xs uppercase tracking-[0.2em] ${STATUS_CLASS[lead.status]}`}>
         <select
@@ -179,7 +196,7 @@ function Row({ lead }: { lead: Lead }) {
         >
           {LEAD_STATUSES.map((s) => (
             <option key={s} value={s}>
-              {s.replace('_', ' ')}
+              {STATUS_LABELS[s]}
             </option>
           ))}
         </select>
@@ -198,7 +215,7 @@ function Row({ lead }: { lead: Lead }) {
           <option value="">—</option>
           {FIRST_MESSAGES.map((m) => (
             <option key={m} value={m}>
-              {m.replace('_', ' ')}
+              {FIRST_MSG_LABELS[m]}
             </option>
           ))}
         </select>
@@ -212,7 +229,7 @@ function Row({ lead }: { lead: Lead }) {
 
 function formatDate(iso: string): string {
   const d = new Date(iso)
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`
 }
 
 function Filter({
@@ -246,18 +263,18 @@ function Filter({
 
 function IcpCallout({ icp }: { icp: Icp }) {
   const fields: Array<[string, string | null]> = [
-    ['role', icp.role],
-    ['industry', icp.industry],
-    ['size', icp.company_size],
-    ['geo', icp.geography],
-    ['signal', icp.signal],
+    ['ruolo', icp.role],
+    ['settore', icp.industry],
+    ['dimensione', icp.company_size],
+    ['geografia', icp.geography],
+    ['segnale', icp.signal],
   ]
   return (
     <aside className="border border-border bg-surface/50 px-6 py-5 space-y-3">
       <div className="flex items-baseline gap-3">
         <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-accent">icp</span>
         <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted">
-          who we're hunting
+          chi stiamo cacciando
         </span>
       </div>
       <dl className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-x-6 gap-y-2">
@@ -268,6 +285,14 @@ function IcpCallout({ icp }: { icp: Icp }) {
           </div>
         ))}
       </dl>
+      {icp.disqualification && (
+        <div className="pt-3 border-t border-border/50 space-y-1">
+          <dt className="font-mono text-[10px] uppercase tracking-[0.25em] text-danger">
+            criteri di disqualifica
+          </dt>
+          <dd className="font-serif text-sm">{icp.disqualification}</dd>
+        </div>
+      )}
       {icp.notes && (
         <p className="font-serif text-sm text-muted italic pt-2 border-t border-border/50">
           {icp.notes}

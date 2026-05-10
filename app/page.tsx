@@ -32,8 +32,8 @@ export default async function Page() {
           Pipeline<span className="text-accent italic">.</span>
         </h1>
         <p className="font-mono text-xs uppercase tracking-[0.2em] text-muted">
-          {leads.length} leads · live
-          {error && <span className="text-danger ml-4">db error: {error.message}</span>}
+          {leads.length} lead · live
+          {error && <span className="text-danger ml-4">errore db: {error.message}</span>}
         </p>
       </header>
       <Tracker initial={leads} icp={icp} />

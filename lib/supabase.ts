@@ -25,6 +25,7 @@ export type Icp = {
   company_size: string | null
   geography: string | null
   signal: string | null
+  disqualification: string | null
   notes: string | null
   created_at: string
   updated_at: string

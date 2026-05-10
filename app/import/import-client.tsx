@@ -72,10 +72,10 @@ export function ImportClient() {
       >
         <input {...getInputProps()} />
         <p className="font-serif text-3xl">
-          {isDragActive ? 'release to drop' : 'drop a csv here'}
+          {isDragActive ? 'rilascia per caricare' : 'trascina un csv qui'}
         </p>
         <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted mt-4">
-          or click to choose · utf-8 · headers required · only linkedin url is imported
+          oppure clicca per scegliere · utf-8 · header richiesti · viene importato solo l'url linkedin
         </p>
       </div>
 
@@ -83,14 +83,14 @@ export function ImportClient() {
         <>
           <section className="border-t border-border pt-10 space-y-6">
             <div className="flex items-baseline gap-3">
-              <h2 className="font-serif text-3xl">Mapping</h2>
+              <h2 className="font-serif text-3xl">Mappatura</h2>
               <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted">
-                detected from headers
+                rilevata dagli header
               </span>
             </div>
             <Field
-              label="linkedin url"
-              hint="required"
+              label="url linkedin"
+              hint="obbligatorio"
               headers={headers}
               value={urlField}
               onChange={setUrlField}
@@ -99,9 +99,9 @@ export function ImportClient() {
 
           <section className="border-t border-border pt-10 space-y-6">
             <div className="flex items-baseline gap-3">
-              <h2 className="font-serif text-3xl">Preview</h2>
+              <h2 className="font-serif text-3xl">Anteprima</h2>
               <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted">
-                {rows.length} rows · first 8 shown
+                {rows.length} righe · prime 8 mostrate
               </span>
             </div>
             <div className="overflow-x-auto">
@@ -109,7 +109,7 @@ export function ImportClient() {
                 <thead>
                   <tr className="border-b border-border">
                     <th className="text-left py-2 uppercase tracking-[0.25em] text-muted font-normal text-[10px]">
-                      linkedin url
+                      url linkedin
                     </th>
                   </tr>
                 </thead>
@@ -134,11 +134,11 @@ export function ImportClient() {
               onClick={submit}
               className="font-mono text-xs uppercase tracking-[0.25em] px-8 py-4 bg-foreground text-background disabled:opacity-30 disabled:cursor-not-allowed hover:bg-accent transition-colors"
             >
-              {submitting ? 'importing…' : `import ${rows.length} leads`}
+              {submitting ? 'importazione…' : `importa ${rows.length} lead`}
             </button>
             {!ready && (
               <span className="font-mono text-xs text-muted">
-                map a linkedin url column to continue
+                mappa una colonna url linkedin per continuare
               </span>
             )}
           </div>
@@ -146,13 +146,13 @@ export function ImportClient() {
           {result && (
             <div className="border-t border-border pt-6 font-mono text-sm">
               {result.error ? (
-                <span className="text-danger">error: {result.error}</span>
+                <span className="text-danger">errore: {result.error}</span>
               ) : (
                 <>
                   <span className="text-success">{result.inserted}</span>
-                  <span className="text-muted"> inserted · </span>
+                  <span className="text-muted"> inseriti · </span>
                   <span className="text-muted">{result.skipped}</span>
-                  <span className="text-muted"> skipped (duplicates or empty)</span>
+                  <span className="text-muted"> saltati (duplicati o vuoti)</span>
                 </>
               )}
             </div>
@@ -186,7 +186,7 @@ function Field({
         onChange={(e) => onChange(e.target.value || null)}
         className="bg-transparent border-b border-border py-2 font-sans text-base focus:outline-none focus:border-accent"
       >
-        <option value="">— none —</option>
+        <option value="">— nessuna —</option>
         {headers.map((h) => (
           <option key={h} value={h}>
             {h}

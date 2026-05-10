@@ -19,13 +19,13 @@ const jetbrains = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: 'LinkedIn Tracker',
-  description: 'Read-only pipeline view for autonomous + Origami lead-gen flows',
+  description: 'Pipeline lead LinkedIn · flussi Origami + monitor manuale',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
-      lang="en"
+      lang="it"
       className={`${fraunces.variable} ${geist.variable} ${jetbrains.variable} antialiased`}
     >
       <body className="min-h-screen">
@@ -39,7 +39,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 Pipeline
               </Link>
               <Link href="/import" className="hover:text-foreground transition-colors">
-                Import
+                Importa
               </Link>
             </div>
           </nav>

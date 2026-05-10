@@ -21,6 +21,7 @@ export type IcpInput = {
   company_size: string
   geography: string
   signal: string
+  disqualification: string
   notes: string
 }
 

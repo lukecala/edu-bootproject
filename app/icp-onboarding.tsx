@@ -3,13 +3,25 @@
 import { useState, useTransition } from 'react'
 import { createIcp, type IcpInput } from './actions'
 
-const FIELDS: Array<{ key: keyof IcpInput; label: string; placeholder: string; multiline?: boolean }> = [
-  { key: 'role', label: 'role', placeholder: 'e.g. Head of Growth, B2B SaaS founder' },
-  { key: 'industry', label: 'industry', placeholder: 'e.g. fintech, ecommerce, agencies' },
-  { key: 'company_size', label: 'company size', placeholder: 'e.g. 10–50, 50–200' },
-  { key: 'geography', label: 'geography', placeholder: 'e.g. EU, DACH, US East Coast' },
-  { key: 'signal', label: 'signal', placeholder: 'e.g. recently raised seed, hiring AEs' },
-  { key: 'notes', label: 'notes', placeholder: 'free-form context, exclusions, anti-fit', multiline: true },
+const FIELDS: Array<{
+  key: keyof IcpInput
+  label: string
+  placeholder: string
+  multiline?: boolean
+  required?: boolean
+}> = [
+  { key: 'role', label: 'ruolo', placeholder: 'es. Head of Growth, founder B2B SaaS', required: true },
+  { key: 'industry', label: 'settore', placeholder: 'es. fintech, ecommerce, agenzie', required: true },
+  { key: 'company_size', label: 'dimensione azienda', placeholder: 'es. 10–50, 50–200' },
+  { key: 'geography', label: 'geografia', placeholder: 'es. EU, DACH, Nord America', required: true },
+  { key: 'signal', label: 'segnale', placeholder: 'es. ha appena raccolto seed, sta assumendo AE' },
+  {
+    key: 'disqualification',
+    label: 'criteri di disqualifica',
+    placeholder: 'es. agenzie generaliste, freelancer solo, profili senza foto…',
+    multiline: true,
+  },
+  { key: 'notes', label: 'note', placeholder: 'contesto libero, esclusioni, anti-fit', multiline: true },
 ]
 
 const EMPTY: IcpInput = {
@@ -18,6 +30,7 @@ const EMPTY: IcpInput = {
   company_size: '',
   geography: '',
   signal: '',
+  disqualification: '',
   notes: '',
 }
 
@@ -51,7 +64,7 @@ export function IcpOnboarding() {
             ICP<span className="text-accent italic">.</span>
           </h2>
           <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted">
-            define who we're hunting · stored once, used everywhere
+            definisci chi stiamo cacciando · salvato una volta, usato ovunque
           </p>
         </div>
 
@@ -60,9 +73,7 @@ export function IcpOnboarding() {
             <label key={f.key} className="block space-y-2">
               <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted">
                 {f.label}
-                {(f.key === 'role' || f.key === 'industry' || f.key === 'geography') && (
-                  <span className="text-accent ml-1">*</span>
-                )}
+                {f.required && <span className="text-accent ml-1">*</span>}
               </span>
               {f.multiline ? (
                 <textarea
@@ -87,14 +98,14 @@ export function IcpOnboarding() {
 
         <div className="px-10 py-6 border-t border-border flex items-center justify-between gap-4">
           <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted">
-            {error ? <span className="text-danger">{error}</span> : 'fields with * are required'}
+            {error ? <span className="text-danger">{error}</span> : 'i campi con * sono obbligatori'}
           </p>
           <button
             type="submit"
             disabled={!canSubmit || pending}
             className="font-mono text-xs uppercase tracking-[0.25em] px-6 py-3 border border-foreground hover:bg-foreground hover:text-background transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
           >
-            {pending ? 'saving…' : 'save icp'}
+            {pending ? 'salvataggio…' : 'salva icp'}
           </button>
         </div>
       </form>

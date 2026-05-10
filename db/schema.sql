@@ -28,16 +28,20 @@ end $$;
 -- ---------- icp ----------
 -- single active row at a time. The app shows the onboarding modal until a row exists.
 create table if not exists public.icp (
-  id            uuid primary key default uuid_generate_v4(),
-  role          text,
-  industry      text,
-  company_size  text,
-  geography     text,
-  signal        text,
-  notes         text,
-  created_at    timestamptz not null default now(),
-  updated_at    timestamptz not null default now()
+  id              uuid primary key default uuid_generate_v4(),
+  role            text,
+  industry        text,
+  company_size    text,
+  geography       text,
+  signal          text,
+  disqualification text,
+  notes           text,
+  created_at      timestamptz not null default now(),
+  updated_at      timestamptz not null default now()
 );
+
+-- safe-add for existing icp tables (idempotent)
+alter table public.icp add column if not exists disqualification text;
 
 drop trigger if exists icp_updated_at on public.icp;
 create trigger icp_updated_at before update on public.icp
