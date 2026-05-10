@@ -5,40 +5,18 @@ import { useDropzone } from 'react-dropzone'
 import Papa from 'papaparse'
 import { importLeads } from './actions'
 
-const NAME_RE = [/^full[\s_-]?name$/i, /^name$/i, /^contact[\s_-]?name$/i]
 const URL_RE = [/linkedin/i, /profile[\s_-]?url/i, /^url$/i]
-const FIRST_RE = [/^first[\s_-]?name$/i, /^fname$/i, /^given[\s_-]?name$/i]
-const LAST_RE = [/^last[\s_-]?name$/i, /^surname$/i, /^lname$/i, /^family[\s_-]?name$/i]
-
-type Mapping = {
-  fullName: string | null
-  firstName: string | null
-  lastName: string | null
-  linkedinUrl: string | null
-}
 
 type Row = Record<string, string>
 
-function detect(headers: string[]): Mapping {
-  const find = (patterns: RegExp[]) =>
-    headers.find((h) => patterns.some((p) => p.test(h.trim()))) ?? null
-  return {
-    fullName: find(NAME_RE),
-    firstName: find(FIRST_RE),
-    lastName: find(LAST_RE),
-    linkedinUrl: find(URL_RE),
-  }
+function detect(headers: string[]): string | null {
+  return headers.find((h) => URL_RE.some((p) => p.test(h.trim()))) ?? null
 }
 
 export function ImportClient() {
   const [headers, setHeaders] = useState<string[]>([])
   const [rows, setRows] = useState<Row[]>([])
-  const [mapping, setMapping] = useState<Mapping>({
-    fullName: null,
-    firstName: null,
-    lastName: null,
-    linkedinUrl: null,
-  })
+  const [urlField, setUrlField] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [result, setResult] = useState<
     { inserted: number; skipped: number; error?: string } | null
@@ -55,7 +33,7 @@ export function ImportClient() {
         const hs = (parsed.meta.fields ?? []).filter(Boolean)
         setHeaders(hs)
         setRows(parsed.data)
-        setMapping(detect(hs))
+        setUrlField(detect(hs))
       },
     })
   }, [])
@@ -66,27 +44,15 @@ export function ImportClient() {
     multiple: false,
   })
 
-  const ready =
-    !!mapping.linkedinUrl &&
-    (!!mapping.fullName || (!!mapping.firstName && !!mapping.lastName))
-
-  function buildName(row: Row): string {
-    if (mapping.fullName) return (row[mapping.fullName] ?? '').trim()
-    const f = mapping.firstName ? row[mapping.firstName] ?? '' : ''
-    const l = mapping.lastName ? row[mapping.lastName] ?? '' : ''
-    return `${f} ${l}`.trim()
-  }
+  const ready = !!urlField
 
   async function submit() {
     setSubmitting(true)
     setResult(null)
     try {
       const payload = rows
-        .map((row) => ({
-          full_name: buildName(row),
-          linkedin_url: (mapping.linkedinUrl ? row[mapping.linkedinUrl] : '').trim(),
-        }))
-        .filter((r) => r.full_name && r.linkedin_url)
+        .map((row) => ({ linkedin_url: (urlField ? row[urlField] : '').trim() }))
+        .filter((r) => r.linkedin_url)
       const r = await importLeads(payload)
       setResult(r)
     } catch (e) {
@@ -109,7 +75,7 @@ export function ImportClient() {
           {isDragActive ? 'release to drop' : 'drop a csv here'}
         </p>
         <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted mt-4">
-          or click to choose · utf-8 · headers required
+          or click to choose · utf-8 · headers required · only linkedin url is imported
         </p>
       </div>
 
@@ -122,36 +88,13 @@ export function ImportClient() {
                 detected from headers
               </span>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
-              <Field
-                label="full name"
-                hint="if present, used as-is"
-                headers={headers}
-                value={mapping.fullName}
-                onChange={(v) => setMapping({ ...mapping, fullName: v })}
-              />
-              <Field
-                label="linkedin url"
-                hint="required"
-                headers={headers}
-                value={mapping.linkedinUrl}
-                onChange={(v) => setMapping({ ...mapping, linkedinUrl: v })}
-              />
-              <Field
-                label="first name"
-                hint="fallback if no full name"
-                headers={headers}
-                value={mapping.firstName}
-                onChange={(v) => setMapping({ ...mapping, firstName: v })}
-              />
-              <Field
-                label="last name"
-                hint="fallback if no full name"
-                headers={headers}
-                value={mapping.lastName}
-                onChange={(v) => setMapping({ ...mapping, lastName: v })}
-              />
-            </div>
+            <Field
+              label="linkedin url"
+              hint="required"
+              headers={headers}
+              value={urlField}
+              onChange={setUrlField}
+            />
           </section>
 
           <section className="border-t border-border pt-10 space-y-6">
@@ -165,9 +108,6 @@ export function ImportClient() {
               <table className="w-full font-mono text-xs">
                 <thead>
                   <tr className="border-b border-border">
-                    <th className="text-left py-2 pr-4 uppercase tracking-[0.25em] text-muted font-normal text-[10px]">
-                      full name
-                    </th>
                     <th className="text-left py-2 uppercase tracking-[0.25em] text-muted font-normal text-[10px]">
                       linkedin url
                     </th>
@@ -176,11 +116,8 @@ export function ImportClient() {
                 <tbody>
                   {rows.slice(0, 8).map((row, i) => (
                     <tr key={i} className="border-b border-border/40">
-                      <td className="py-2 pr-4">
-                        {buildName(row) || <span className="text-danger">—</span>}
-                      </td>
                       <td className="py-2 text-muted">
-                        {(mapping.linkedinUrl ? row[mapping.linkedinUrl] : '') || (
+                        {(urlField ? row[urlField] : '') || (
                           <span className="text-danger">—</span>
                         )}
                       </td>
@@ -201,7 +138,7 @@ export function ImportClient() {
             </button>
             {!ready && (
               <span className="font-mono text-xs text-muted">
-                map LinkedIn URL + name to continue
+                map a linkedin url column to continue
               </span>
             )}
           </div>
@@ -242,8 +179,7 @@ function Field({
   return (
     <label className="flex flex-col gap-2">
       <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted">
-        {label}{' '}
-        <span className="opacity-50 normal-case tracking-normal">· {hint}</span>
+        {label} <span className="opacity-50 normal-case tracking-normal">· {hint}</span>
       </span>
       <select
         value={value ?? ''}

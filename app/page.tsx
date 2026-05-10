@@ -1,17 +1,29 @@
-import { serverClient, type Lead } from '@/lib/supabase'
+import { serverClient, type Icp, type Lead } from '@/lib/supabase'
 import { Tracker } from './tracker'
+import { IcpOnboarding } from './icp-onboarding'
 
 export const dynamic = 'force-dynamic'
 
 export default async function Page() {
   const supabase = serverClient()
-  const { data, error } = await supabase
-    .from('leads')
-    .select('id, full_name, linkedin_url, source, status, score, created_at, connected_at')
-    .order('created_at', { ascending: false })
-    .limit(500)
 
-  const leads = (data ?? []) as Lead[]
+  const [leadsRes, icpRes] = await Promise.all([
+    supabase
+      .from('leads')
+      .select('id, linkedin_url, source, status, first_message, last_activity_at, created_at, updated_at')
+      .order('created_at', { ascending: false })
+      .limit(500),
+    supabase
+      .from('icp')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+  ])
+
+  const leads = (leadsRes.data ?? []) as Lead[]
+  const icp = (icpRes.data ?? null) as Icp | null
+  const error = leadsRes.error
 
   return (
     <div className="space-y-12">
@@ -24,7 +36,8 @@ export default async function Page() {
           {error && <span className="text-danger ml-4">db error: {error.message}</span>}
         </p>
       </header>
-      <Tracker initial={leads} />
+      <Tracker initial={leads} icp={icp} />
+      {!icp && <IcpOnboarding />}
     </div>
   )
 }
