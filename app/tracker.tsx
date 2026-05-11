@@ -149,22 +149,16 @@ function Row({ lead }: { lead: Lead }) {
 
   function onStatus(v: LeadStatus) {
     startTransition(async () => {
-      try {
-        await updateLeadStatus(lead.id, v)
-      } catch (e) {
-        alert((e as Error).message)
-      }
+      const r = await updateLeadStatus(lead.id, v)
+      if (!r.ok) alert(r.error)
     })
   }
 
   function onFirstMessage(v: string) {
     const next = v === '' ? null : (v as FirstMessage)
     startTransition(async () => {
-      try {
-        await updateLeadFirstMessage(lead.id, next)
-      } catch (e) {
-        alert((e as Error).message)
-      }
+      const r = await updateLeadFirstMessage(lead.id, next)
+      if (!r.ok) alert(r.error)
     })
   }
 

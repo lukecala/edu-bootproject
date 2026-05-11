@@ -46,7 +46,8 @@ export function IcpOnboarding() {
     setError(null)
     startTransition(async () => {
       try {
-        await createIcp(form)
+        const res = await createIcp(form)
+        if (!res.ok) setError(res.error)
       } catch (err) {
         setError((err as Error).message)
       }
